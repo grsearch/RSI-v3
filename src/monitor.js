@@ -26,12 +26,12 @@ const FDV_EXIT_USD = parseInt(process.env.FDV_EXIT_USD || '15000');
 const LP_EXIT_USD  = parseInt(process.env.LP_EXIT_USD  || '2000');
 
 // ── 其他参数 ───────────────────────────────────────────────────
-const PRICE_POLL_SEC     = parseInt(process.env.PRICE_POLL_SEC        || '1');
-const KLINE_INTERVAL_SEC = parseInt(process.env.KLINE_INTERVAL_SEC    || '3');
+const PRICE_POLL_SEC     = parseInt(process.env.PRICE_POLL_SEC        || '5');
+const KLINE_INTERVAL_SEC = parseInt(process.env.KLINE_INTERVAL_SEC    || '15');
 const TOKEN_MAX_AGE_MIN  = parseInt(process.env.TOKEN_MAX_AGE_MINUTES || '1440'); // 默认 24h
 const STOP_LOSS_PCT      = parseFloat(process.env.STOP_LOSS_PCT       || '20');
 
-const MAX_TICKS = 3600;
+const MAX_TICKS = 1200; // 24h @ 15s K线 × 5s轮询
 
 class TokenMonitor {
   static instance = null;

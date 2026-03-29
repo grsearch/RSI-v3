@@ -190,12 +190,12 @@ header{display:flex;align-items:center;justify-content:space-between;padding:10p
     <div class="logo-icon">ρ</div>
     <div>
       <div class="logo-text">SOL RSI MONITOR v3</div>
-      <div class="logo-sub">白名单模式 · 3s K线 · RSI7 · Buy&lt;30 · Sell&gt;75 · SL-20% · 24h 窗口</div>
+      <div class="logo-sub">白名单模式 · 15s K线 · RSI7 · Buy&lt;30 · Sell&gt;75 · SL-20% · 24h 窗口</div>
     </div>
   </div>
   <div class="header-right">
     <div class="pill"><span class="lbl">RSI</span><span class="val">7</span></div>
-    <div class="pill"><span class="lbl">K线</span><span class="val">3s</span></div>
+    <div class="pill"><span class="lbl">K线</span><span class="val">15s</span></div>
     <div class="pill"><span class="lbl">买入</span><span class="val">&lt;30</span></div>
     <div class="pill"><span class="lbl">卖出</span><span class="val">&gt;75</span></div>
     <div class="pill"><span class="lbl">止损</span><span class="val">-20%</span></div>
@@ -266,12 +266,12 @@ header{display:flex;align-items:center;justify-content:space-between;padding:10p
       <div class="section-header"><span class="section-title">策略配置</span></div>
       <div class="config-grid">
         <div class="cfg-item"><div class="cfg-label">模式</div><div class="cfg-value" style="color:var(--purple)">白名单</div></div>
-        <div class="cfg-item"><div class="cfg-label">K线周期</div><div class="cfg-value">3s</div></div>
+        <div class="cfg-item"><div class="cfg-label">K线周期</div><div class="cfg-value">15s</div></div>
         <div class="cfg-item"><div class="cfg-label">RSI周期</div><div class="cfg-value">7</div></div>
         <div class="cfg-item"><div class="cfg-label">买入信号</div><div class="cfg-value">RSI上穿30</div></div>
         <div class="cfg-item"><div class="cfg-label">卖出信号</div><div class="cfg-value">RSI超过75</div></div>
         <div class="cfg-item"><div class="cfg-label">过滤①</div><div class="cfg-value">EMA收敛≤3%</div></div>
-        <div class="cfg-item"><div class="cfg-label">过滤②</div><div class="cfg-value">RSI底背离</div></div>
+        
         <div class="cfg-item"><div class="cfg-label">止损</div><div class="cfg-value">-20%</div></div>
         <div class="cfg-item"><div class="cfg-label">监控窗口</div><div class="cfg-value">24h</div></div>
         <div class="cfg-item"><div class="cfg-label">退出FDV</div><div class="cfg-value">&lt;$15K</div></div>
@@ -526,7 +526,7 @@ function renderMiniChart(t) {
     svg += `<line x1="${px+cw/2}" y1="${wt}" x2="${px+cw/2}" y2="${wb}" stroke="${col}" stroke-width="0.5" opacity=".4"/>`;
     svg += `<rect x="${px+0.5}" y="${bt}" width="${Math.max(1,cw-1)}" height="${bh}" fill="${col}" opacity=".8"/>`;
   });
-  return `<div class="card-chart"><div class="chart-label">K线 (最近${c.length}根 · 3s)</div><div class="mini-chart"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${svg}</svg></div></div>`;
+  return `<div class="card-chart"><div class="chart-label">K线 (最近${c.length}根 · 15s)</div><div class="mini-chart"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${svg}</svg></div></div>`;
 }
 
 function tradeEntryHTML(d) {

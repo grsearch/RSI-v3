@@ -3,7 +3,6 @@
 // BUY 触发条件（全部满足）：
 //   1. RSI 上穿 RSI_BUY (30)
 //   2. EMA9/EMA20 收敛 ≤ EMA_CONVERGE_PCT（K线不足20根时跳过此过滤，不阻塞）
-//   3. RSI 底背离（K线不足时跳过，不阻塞）
 //
 // SELL 触发条件：
 //   RSI 超过 RSI_SELL (75)
@@ -11,7 +10,10 @@
 // 预热逻辑优化（解决买入滞后）：
 //   - 只需 RSI_PERIOD + 2 根K线即可出信号（默认 9 根）
 //   - EMA20 需要20根预热，不足时跳过EMA过滤器（而不是整体阻塞）
-//   - RSI底背离同理，数据不足时直接放行
+//
+// 注：RSI底背离过滤器已移除。
+//   原实现只比较RSI自身的两次谷底，未对比价格，在持续下跌行情中
+//   RSI谷底天然越来越低，导致真正的超卖买点被错误过滤。
 
 'use strict';
 
@@ -20,9 +22,8 @@ const logger = require('./logger');
 const RSI_PERIOD       = parseInt(process.env.RSI_PERIOD         || '7');
 const RSI_BUY          = parseFloat(process.env.RSI_BUY          || '30');
 const RSI_SELL         = parseFloat(process.env.RSI_SELL         || '75');
-const KLINE_SEC        = parseInt(process.env.KLINE_INTERVAL_SEC || '3');
+const KLINE_SEC        = parseInt(process.env.KLINE_INTERVAL_SEC || '15');
 const EMA_CONVERGE_PCT = parseFloat(process.env.EMA_CONVERGE_PCT || '3');
-const RSI_DIVERGE_BARS = parseInt(process.env.RSI_DIVERGE_BARS   || '20');
 
 const RSI_MIN_BARS = RSI_PERIOD + 2;
 
@@ -98,34 +99,6 @@ function checkEmaConverge(closes) {
   };
 }
 
-// ── 过滤器2：RSI 底背离检查 ───────────────────────────────────
-function checkRsiDivergence(rsis, currentIdx) {
-  let thisTrough = Infinity;
-  let i = currentIdx - 1;
-  while (i >= 0 && rsis[i] <= rsis[i + 1]) {
-    if (!isNaN(rsis[i])) thisTrough = Math.min(thisTrough, rsis[i]);
-    i--;
-  }
-  if (thisTrough === Infinity) return { pass: true, reason: 'no_prev_trough' };
-
-  const searchStart = Math.max(0, i - RSI_DIVERGE_BARS);
-  let prevTrough    = Infinity;
-  for (let j = searchStart; j <= i; j++) {
-    if (!isNaN(rsis[j])) prevTrough = Math.min(prevTrough, rsis[j]);
-  }
-  if (prevTrough === Infinity) return { pass: true, reason: 'no_prev_trough' };
-
-  const pass = thisTrough >= prevTrough;
-  return {
-    pass,
-    reason: pass
-      ? `RSI底背离(本次${thisTrough.toFixed(1)}≥上次${prevTrough.toFixed(1)})`
-      : `RSI底部下沉(本次${thisTrough.toFixed(1)}<上次${prevTrough.toFixed(1)})`,
-    thisTrough,
-    prevTrough,
-  };
-}
-
 // ── 主信号评估 ────────────────────────────────────────────────
 function evaluateSignal(candles, tokenState) {
   try {
@@ -184,22 +157,11 @@ function _evaluateSignal(candles, tokenState) {
       };
     }
 
-    const divResult = checkRsiDivergence(rsis, len - 1);
-    if (!divResult.pass) {
-      return {
-        rsi: rsiNow, ema9: emaResult.ema9, ema20: emaResult.ema20, emaGapPct: emaResult.gapPct,
-        signal: null,
-        reason: `RSI上穿但过滤: ${divResult.reason}`,
-        blocked: true,
-        blockReason: divResult.reason,
-      };
-    }
-
     const filterNote = emaResult.skip ? '(EMA预热跳过)' : emaResult.reason;
     return {
       rsi: rsiNow, ema9: emaResult.ema9, ema20: emaResult.ema20, emaGapPct: emaResult.gapPct,
       signal: 'BUY',
-      reason: `RSI上穿${RSI_BUY} + ${filterNote} + ${divResult.reason}`,
+      reason: `RSI上穿${RSI_BUY} + ${filterNote}`,
       blocked: false,
     };
   }
@@ -254,5 +216,5 @@ function buildCandles(ticks, intervalSec = KLINE_SEC) {
 module.exports = {
   calcRSI, calcEMA, evaluateSignal, buildCandles,
   RSI_PERIOD, RSI_BUY, RSI_SELL, KLINE_SEC,
-  EMA_CONVERGE_PCT, RSI_DIVERGE_BARS,
+  EMA_CONVERGE_PCT,
 };
